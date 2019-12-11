@@ -154,7 +154,6 @@ router.post(
       const post = await Post.findById(req.params.post_id);
       const user = await User.findById(req.user.id).select('-password');
 
-
       const newComment = {
         text: req.body.text,
         name: user.name,
@@ -164,6 +163,8 @@ router.post(
 
       post.comments.unshift(newComment);
       await post.save();
+
+      console.log('post ' + post.comments)
       return res.status(200).json(post.comments);
     } catch (err) {
       console.error(err.message);
