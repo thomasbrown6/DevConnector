@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../../middleware/auth');
-const { check, validationResult } = require('express-validator/check');
+const { check, validationResult } = require('express-validator');
 
 const User = require('../../models/User');
 const Profile = require('../../models/Profile');
@@ -153,6 +153,7 @@ router.post(
     try {
       const post = await Post.findById(req.params.post_id);
       const user = await User.findById(req.user.id).select('-password');
+
 
       const newComment = {
         text: req.body.text,

@@ -3,10 +3,11 @@ const router = express.Router();
 const auth = require('../../middleware/auth');
 const request = require('request');
 const config = require('config');
-const { check, validationResult } = require('express-validator/check');
+const { check, validationResult } = require('express-validator');
 
 const Profile = require('../../models/Profile');
 const User = require('../../models/User');
+const Post = require('../../models/Post');
 
 // @route   GET api/profile/me
 // @desc    Get current users profile
@@ -20,6 +21,8 @@ router.get('/me', auth, async (req, res) => {
     if (!profile) {
       return res.status(400).json({ msg: 'There is no profile for this user' });
     }
+    
+    return res.json(profile);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -103,14 +106,11 @@ router.post(
       profile = new Profile(profileFields);
 
       await profile.save();
-      res.json(profile);
+     return res.json(profile);
     } catch (err) {
       console.error(err.message);
-      res.status(500).send('Server Error');
+     return res.status(500).send('Server Error');
     }
-
-    console.log(profileFields.social.twitter);
-    res.send('saved');
   }
 );
 
@@ -153,8 +153,8 @@ router.get('/user/:user_id', async (req, res) => {
 // @access  Private
 router.delete('/', auth, async (req, res) => {
   try {
-    // @todo - remove users posts
-
+    // Remove users posts
+    await Post.deleteMany({ user: req.user.id });
     // Remove Profile
     await Profile.findOneAndRemove({ user: req.user.id });
     // Remove User
@@ -357,15 +357,14 @@ router.get('/github/:username', (req, res) => {
     };
 
     request(options, (error, response, body) => {
-        if(error) console.error(error);
+      if (error) console.error(error);
 
-        if(response.statusCode !== 200) {
-            return res.status(404).json({ msg: 'No Github profile found' });
-        }
+      if (response.statusCode !== 200) {
+        return res.status(404).json({ msg: 'No Github profile found' });
+      }
 
-        res.json(JSON.parse(body));
-    })
-
+      res.json(JSON.parse(body));
+    });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
